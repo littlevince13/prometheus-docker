@@ -1,0 +1,65 @@
+global:
+     scrape_interval: 5s
+     external_labels:
+         monitor: 'demo-monitor'
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+       - 10.88.72.245:9093
+
+rule_files:
+   - "alert_rules.yaml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'api_monitor'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['web:5000']
+  - job_name: 'node_exporter_centos'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['10.88.72.246:9100']
+      - targets: ['10.88.72.243:9100']
+  - job_name: 'node_exporter_windows'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['10.88.72.244:9182']
+  - job_name: SA36
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://api.sa-apisvr.com/api/api.aspx
+          - https://www.sa36.net/healthcheck.aspx
+          - http://cbo.stag2.slgaming.net/healthcheck.aspx
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 10.88.72.246:9115
+  - job_name: loginurl
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://vkk.sa-apix.com/healthcheck.aspx
+          - https://gbh.sa-apix.com/healthcheck.aspx
+          - https://sx5.sa-apix.com/healthcheck.aspx
+          - https://tah.sa-apix.com/healthcheck.aspx
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 10.88.72.246:9115
+
